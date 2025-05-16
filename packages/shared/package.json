@@ -1,0 +1,5 @@
+{
+  "name": "@chat/shared",
+  "main": "index.ts",
+  "types": "index.ts"
+}
