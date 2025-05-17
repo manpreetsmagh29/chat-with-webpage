@@ -14,6 +14,7 @@ const App = () => {
 
   const chatWindowRef = useRef<HTMLDivElement | null>(null);
 
+  // Scroll chat window to bottom whenever messages change
   useEffect(() => {
     chatWindowRef.current?.scrollTo({
       top: chatWindowRef.current.scrollHeight,
@@ -21,6 +22,7 @@ const App = () => {
     });
   }, [messages]);
 
+  // called after page content is fetched
   const handleContentFetched = (url: string, content: string) => {
     setUrl(url);
     setPageContent(content);
@@ -29,6 +31,7 @@ const App = () => {
     fetchSuggestedQuestions(content);
   };
 
+  // Fetches suggested questions based on the given page content
   const fetchSuggestedQuestions = async (content: string) => {
     try {
       const response = await fetch("http://localhost:3001/suggest-questions", {
@@ -46,6 +49,7 @@ const App = () => {
     }
   };
 
+  // Handler for sending a question to the chatbot
   const handleSend = async (question: string) => {
     const id = Date.now().toString();
     setMessages((prev) => [...prev, { id, sender: "user", text: question }]);
@@ -57,6 +61,7 @@ const App = () => {
       { id: id + "-bot", sender: "bot", text: "" },
     ]);
 
+    // Stream chat response from backend, updating bot message with incoming chunks
     await streamChatResponse({
       question,
       pageContent: pageContent!,

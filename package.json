@@ -2,7 +2,6 @@
   "name": "chat-with-webpage",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ]
 }

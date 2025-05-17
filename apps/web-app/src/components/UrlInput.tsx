@@ -9,8 +9,11 @@ const UrlInput = ({ onContentFetched }: UrlInputProps) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // fetch content for the entered URL
   const handleLoad = async () => {
     if (!url) return;
+
+    // Set loading to true to disable button
     setLoading(true);
     try {
       const content = await fetchPageContent(url);

@@ -3,10 +3,12 @@ const input = document.getElementById("input");
 const form = document.getElementById("chat-form");
 const suggestionsContainer = document.getElementById("suggestions");
 
+// Scroll chat box to the bottom to show the latest message
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// Append a chat message to the chat box
 function appendMessage(content, isUser = false) {
   const wrapper = document.createElement("div");
   wrapper.style.display = "flex";
@@ -40,6 +42,7 @@ function appendMessage(content, isUser = false) {
   scrollToBottom();
 }
 
+// Render the list of suggested questions in the suggestions container
 function appendSuggestions(suggestions) {
   suggestionsContainer.innerHTML = "";
   if (!suggestions || suggestions.length === 0) {
@@ -64,6 +67,7 @@ function appendSuggestions(suggestions) {
   });
 }
 
+// Fetches suggested questions by communicating with backend API
 async function fetchSuggestions() {
   try {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -107,6 +111,7 @@ async function fetchSuggestions() {
 
 document.addEventListener("DOMContentLoaded", fetchSuggestions);
 
+// Handles sending a user message
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const userInput = input.value.trim();
