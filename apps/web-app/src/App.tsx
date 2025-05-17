@@ -10,6 +10,7 @@ const App = () => {
   const [url, setUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
 
   const chatWindowRef = useRef<HTMLDivElement | null>(null);
 
@@ -24,6 +25,25 @@ const App = () => {
     setUrl(url);
     setPageContent(content);
     setMessages([]);
+    setSuggestedQuestions([]);
+    fetchSuggestedQuestions(content);
+  };
+
+  const fetchSuggestedQuestions = async (content: string) => {
+    try {
+      const response = await fetch("http://localhost:3001/suggest-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageContent: content }),
+      });
+
+      const data = await response.json();
+      if (data.questions) {
+        setSuggestedQuestions(data.questions);
+      }
+    } catch (error) {
+      console.error("Error fetching suggested questions:", error);
+    }
   };
 
   const handleSend = async (question: string) => {
@@ -61,13 +81,30 @@ const App = () => {
 
       {pageContent && (
         <>
-          <div className="mt-6 p-4 bg-gray-100 rounded whitespace-pre-wrap h-[200px] overflow-auto">
+          <div className="mt-6 p-4 bg-gray-100 rounded">
             {url && (
-              <p className="text-sm text-gray-500 mb-2">Loaded from: {url}</p>
+              <p className="text-sm text-gray-600 font-medium">
+                Webpage URL: <span className="text-blue-600">{url}</span>
+              </p>
             )}
-            <h2 className="text-lg font-semibold mb-2">Extracted Content:</h2>
-            {pageContent}
           </div>
+
+          {suggestedQuestions.length > 0 && (
+            <div className="mt-4 p-4 bg-blue-50 rounded">
+              <h3 className="font-semibold mb-2">Suggested Questions:</h3>
+              <ul className="list-disc list-inside space-y-1">
+                {suggestedQuestions.map((q, i) => (
+                  <li
+                    key={i}
+                    className="cursor-pointer text-blue-700 hover:underline"
+                    onClick={() => handleSend(q)}
+                  >
+                    {q}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div
             ref={chatWindowRef}

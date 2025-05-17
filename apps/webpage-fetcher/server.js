@@ -58,6 +58,42 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+app.post("/suggest-questions", async (req, res) => {
+  try {
+    const { pageContent = "" } = req.body;
+
+    if (!pageContent || pageContent.length < 100) {
+      return res.status(400).json({ error: "Invalid or too short content" });
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You're an assistant that suggests smart, relevant questions a user might ask about a webpage.",
+        },
+        {
+          role: "user",
+          content: `Here is the content of a webpage:\n\n${pageContent}\n\nSuggest 5 questions a user might ask.`,
+        },
+      ],
+    });
+
+    const text = response.choices[0].message.content;
+    const questions = text
+      .split(/\n+/)
+      .map((q) => q.replace(/^\d+\.\s*/, "").trim())
+      .filter(Boolean);
+
+    res.json({ questions });
+  } catch (error) {
+    console.error("Question suggestion error:", error);
+    res.status(500).json({ error: "Failed to generate questions" });
+  }
+});
+
 app.get("/extractPageContent", async (req, res) => {
   const url = req.query.url;
 
