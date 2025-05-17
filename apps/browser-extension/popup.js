@@ -1,6 +1,7 @@
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("input");
 const form = document.getElementById("chat-form");
+const suggestionsContainer = document.getElementById("suggestions");
 
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -39,6 +40,73 @@ function appendMessage(content, isUser = false) {
   scrollToBottom();
 }
 
+function appendSuggestions(suggestions) {
+  suggestionsContainer.innerHTML = "";
+  if (!suggestions || suggestions.length === 0) {
+    suggestionsContainer.style.display = "none";
+    return;
+  }
+  suggestionsContainer.style.display = "block";
+  suggestions.forEach((q) => {
+    const suggestionDiv = document.createElement("div");
+    suggestionDiv.textContent = q;
+    suggestionDiv.style.padding = "6px 10px";
+    suggestionDiv.style.borderRadius = "8px";
+    suggestionDiv.style.backgroundColor = "#f3f4f6";
+    suggestionDiv.style.color = "#1f2937";
+    suggestionDiv.style.fontSize = "13px";
+    suggestionDiv.style.cursor = "pointer";
+    suggestionDiv.addEventListener("click", () => {
+      input.value = q;
+      input.focus();
+    });
+    suggestionsContainer.appendChild(suggestionDiv);
+  });
+}
+
+async function fetchSuggestions() {
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      const tab = tabs[0];
+      if (!tab || !tab.id) {
+        appendSuggestions([]);
+        return;
+      }
+
+      chrome.tabs.sendMessage(
+        tab.id,
+        { action: "extract_content" },
+        async (response) => {
+          if (!response?.content) {
+            appendSuggestions([]);
+            return;
+          }
+
+          const body = { pageContent: response.content };
+
+          const res = await fetch("http://localhost:3001/suggest-questions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok) {
+            appendSuggestions([]);
+            return;
+          }
+
+          const data = await res.json();
+          appendSuggestions(data.questions || []);
+        }
+      );
+    });
+  } catch (err) {
+    appendSuggestions([]);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", fetchSuggestions);
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const userInput = input.value.trim();
@@ -63,8 +131,27 @@ form.addEventListener("submit", async (e) => {
           return;
         }
 
+        const pageContent = response.content;
+
+        try {
+          const suggestRes = await fetch(
+            "http://localhost:3001/suggest-questions",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ pageContent }),
+            }
+          );
+          const suggestData = await suggestRes.json();
+          if (Array.isArray(suggestData.questions)) {
+            appendSuggestions(suggestData.questions);
+          }
+        } catch (err) {
+          console.error("Suggestion error:", err);
+        }
+
         const body = {
-          pageContent: response.content,
+          pageContent,
           messages: [{ role: "user", content: userInput }],
         };
 
