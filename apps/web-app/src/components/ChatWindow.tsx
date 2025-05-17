@@ -1,7 +1,7 @@
 export type Message = {
   id: string;
+  sender: "user" | "bot";
   text: string;
-  sender: "user" | "assistant";
 };
 
 interface ChatWindowProps {

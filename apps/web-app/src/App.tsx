@@ -3,18 +3,7 @@ import UrlInput from "./components/UrlInput";
 import ChatWindow, { type Message } from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
 import "./index.css";
-
-// This is dummy response for now
-const dummyResponse = async (
-  question: string,
-  onUpdate: (partial: string) => void
-) => {
-  const reply = `Reply to: "${question}"`;
-  for (let i = 0; i < reply.length; i++) {
-    await new Promise((r) => setTimeout(r, 30));
-    onUpdate(reply.slice(0, i + 1));
-  }
-};
+import { streamChatResponse } from "./utils/streamChatResponse";
 
 const App = () => {
   const [pageContent, setPageContent] = useState<string | null>(null);
@@ -38,28 +27,27 @@ const App = () => {
   };
 
   const handleSend = async (question: string) => {
-    if (!pageContent) return;
-
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      text: question,
-      sender: "user",
-    };
-    setMessages((prev) => [...prev, userMsg]);
-
-    const assistantId = Date.now().toString() + "-assistant";
-    setMessages((prev) => [
-      ...prev,
-      { id: assistantId, text: "", sender: "assistant" },
-    ]);
+    const id = Date.now().toString();
+    setMessages((prev) => [...prev, { id, sender: "user", text: question }]);
     setIsStreaming(true);
 
-    await dummyResponse(question, (partial) => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantId ? { ...msg, text: partial } : msg
-        )
-      );
+    let answer = "";
+    setMessages((prev) => [
+      ...prev,
+      { id: id + "-bot", sender: "bot", text: "" },
+    ]);
+
+    await streamChatResponse({
+      question,
+      pageContent: pageContent!,
+      onChunk: (chunk) => {
+        answer += chunk;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === id + "-bot" ? { ...msg, text: answer } : msg
+          )
+        );
+      },
     });
 
     setIsStreaming(false);
