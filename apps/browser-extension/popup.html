@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat with Webpage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="styles.css" rel="stylesheet" />
+    <style>
+      html,
+      body {
+        width: 400px;
+        height: 600px;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body class="flex flex-col h-[600px] p-4 bg-white text-black">
+    <h1 class="text-xl font-semibold mb-4">Chat with Webpage</h1>
+
+    <div
+      id="chat-box"
+      class="flex-1 flex flex-col overflow-y-auto border border-gray-300 rounded-lg p-2 bg-gray-50 space-y-2"
+    ></div>
+
+    <form id="chat-form" class="flex gap-2 mt-2">
+      <input
+        id="input"
+        type="text"
+        class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none"
+        placeholder="Ask something..."
+        autocomplete="off"
+        autofocus
+      />
+      <button
+        id="send"
+        type="submit"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
+      >
+        Send
+      </button>
+    </form>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
